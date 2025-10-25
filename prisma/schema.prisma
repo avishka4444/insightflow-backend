@@ -1,0 +1,30 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id        Int      @id @default(autoincrement())
+    email     String   @unique
+    createdAt DateTime @default(now())
+}
+
+model Dashboard {
+    id          Int      @id @default(autoincrement())
+    name        String
+    description String?
+    createdAt   DateTime @default(now())
+    Widget      Widget[]
+}
+
+model Widget {
+    id          Int       @id @default(autoincrement())
+    title       String
+    type        String // "kpi" | "line" | "bar" | "pie" | "table"
+    dashboardId Int
+    dashboard   Dashboard @relation(fields: [dashboardId], references: [id])
+}
