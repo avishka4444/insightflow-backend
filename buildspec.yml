@@ -1,8 +1,8 @@
 version: 0.2
 env:
   variables:
-    REGION: ap-southeast-2
-    REPO_BASE: 780864592876.dkr.ecr.ap-southeast-2.amazonaws.com
+    REGION: us-east-1
+    REPO_BASE: 780864592876.dkr.ecr.us-east-1.amazonaws.com
     REPOSITORY: insightflow
     # Put DOCKERHUB_USERNAME / DOCKERHUB_TOKEN as CodeBuild env secrets (not hardcoded)
 
