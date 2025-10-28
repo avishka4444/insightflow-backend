@@ -3,25 +3,37 @@ name: Build Check
 on:
   pull_request:
     branches: [ main, prod ]
-    types: [ opened, synchronize, reopened ]
+  push:
+    branches: [ main, prod ]
 
 jobs:
-  build:
-    name: Build Check
+  build-check:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+        
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'yarn'
-
+          
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-
-      - name: Build project
+        
+      - name: Generate Prisma client
+        run: yarn prisma generate
+        
+      - name: Build application
         run: yarn build
+        
+      - name: Run linting
+        run: yarn lint
+        
+      - name: Run tests
+        run: yarn test
+        
+      - name: Run e2e tests
+        run: yarn test:e2e

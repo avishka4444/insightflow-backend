@@ -1,0 +1,40 @@
+version: 0.2
+env:
+  variables:
+    REGION: ap-southeast-2
+    REPO_BASE: 780864592876.dkr.ecr.ap-southeast-2.amazonaws.com
+    REPOSITORY: insightflow
+    # Put DOCKERHUB_USERNAME / DOCKERHUB_TOKEN as CodeBuild env secrets (not hardcoded)
+
+phases:
+  pre_build:
+    commands:
+      - set -e
+      - echo "Login Docker Hub"
+      - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - echo "Login ECR"
+      - aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "$REPO_BASE"
+
+      - export REPOSITORY_URI="$REPO_BASE/$REPOSITORY"
+      - COMMIT_HASH=$(echo "$CODEBUILD_RESOLVED_SOURCE_VERSION" | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
+
+  build:
+    commands:
+      - echo "Building image $REPOSITORY_URI:$IMAGE_TAG"
+      - docker build -t "$REPOSITORY_URI:latest" .
+      - docker tag "$REPOSITORY_URI:latest" "$REPOSITORY_URI:$IMAGE_TAG"
+
+  post_build:
+    commands:
+      - echo "Pushing images"
+      - docker push "$REPOSITORY_URI:latest"
+      - docker push "$REPOSITORY_URI:$IMAGE_TAG"
+
+      - echo "Writing imagedefinitions.json"
+      - printf '[{"name":"insightflow","imageUri":"%s"}]' "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
